@@ -1,14 +1,13 @@
 USE BDD_ENCHERES
-GO
+Go
 CREATE OR ALTER PROCEDURE MY_PROCEDURE_ARTICLES
-AS
-
-DECLARE @ar_id char(11)
-
-SELECT @ar_id = MIN( id ) FROM articles WHERE is_finish=0 AND is_actif=1 AND date_fin<DATEDIFF(s, '1970-01-01 00:00:00', GETDATE()) 
-WHILE @ar_id IS NOT NULL
+as
 BEGIN
-	UPDATE articles SET is_finish=1 where id = @ar_id
+	UPDATE articles set is_finish = 1, id_acheteur = tt.id_winner from
+	(select a.id, tmp.id_user as id_winner,tmp.montant FROM articles a 
+	left outer JOIN (select id_article, max(montant) as montant, id_user from ENCHERES group by id_article, id_user) as tmp on tmp.id_article = a.id
+	WHERE is_finish=0 AND is_actif=1 AND date_fin<DATEDIFF(s, '1970-01-01 00:00:00', GETDATE())) as tt
+	WHERE articles.id = tt.id   
 END
 
 DROP TABLE IF EXISTS ENCHERES;
